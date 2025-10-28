@@ -1,0 +1,526 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fengshui test</title>
+    <style>
+        body {
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #8a2be2;
+        }
+        .header h1 {
+            color: #8a2be2;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .question {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #e8f5e9; /* 改为浅绿色 */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .question h3 {
+            color: #6f42c1;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .custom-select {
+            position: relative;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .select-selected {
+            background-color: white;
+            border: 2px solid #d6d6d6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .select-selected:after {
+            position: absolute;
+            content: "";
+            top: 50%;
+            right: 16px;
+            width: 0;
+            height: 0;
+            border: 6px solid transparent;
+            border-color: #8a2be2 transparent transparent transparent;
+            transform: translateY(-50%);
+        }
+        .select-selected.select-arrow-active:after {
+            border-color: transparent transparent #8a2be2 transparent;
+            top: 40%;
+        }
+        .select-selected:hover {
+            border-color: #8a2be2;
+        }
+        .select-items {
+            position: absolute;
+            background-color: white;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            border: 2px solid #8a2be2;
+            border-top: none;
+        }
+        .select-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .select-item:hover {
+            background-color: #f0e6ff;
+        }
+        .select-item.selected {
+            background-color: #8a2be2;
+            color: white;
+        }
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #d6d6d6;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .checkbox-option:hover {
+            border-color: #8a2be2;
+            background: #f0e6ff;
+        }
+        .checkbox-option.selected {
+            border-color: #8a2be2;
+            background: #e6d7ff;
+        }
+        .calculate-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 40px;
+            background: linear-gradient(45deg, #4776E6, #8E54E9);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        .result {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #e6f7ff;
+            display: none;
+        }
+        .score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #8a2be2;
+        }
+        .fengshui-tips {
+            margin-top: 20px;
+            font-style: italic;
+            color: #6c757d;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .selected-option-display {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e6f7ff;
+            border-radius: 8px;
+            display: none;
+        }
+        .options-group {
+            margin-top: 15px;
+        }
+        .fixed-image {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            z-index: 1000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .fixed-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .fixed-image * {
+            pointer-events: none;
+        }
+        .clear-btn {
+            display: inline-block;
+            margin: 10px auto;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(45deg, #ff5252, #e53935);
+        }
+
+        @media (max-width: 1200px) {
+            .fixed-image {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- picture position = fixed -->
+<div class="fixed-image">
+    <img src="{% static 'image/point.jpg' %}" alt="point">
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-dragon"></i> Choose the choices best fits you <i class="fas fa-yin-yang"></i></h1>
+    </div>
+
+    <div class="question">
+        <h3><i class="fas fa-1"></i> Please choose your door facing direction:</h3>
+
+        <div class="custom-select" id="customSelect">
+            <div class="select-selected" id="selectBox">please pick one...</div>
+            <div class="select-items" id="selectOptions">
+                <div class="select-item" data-value="7">East</div>
+                <div class="select-item" data-value="8">Southeast</div>
+                <div class="select-item" data-value="6">South</div>
+                <div class="select-item" data-value="-2">Southwest</div>
+                <div class="select-item" data-value="-3">West</div>
+                <div class="select-item" data-value="5">Northwest</div>
+                <div class="select-item" data-value="4">North</div>
+                <div class="select-item" data-value="1">Northeast</div>
+            </div>
+        </div>
+
+        <div class="selected-option-display" id="selectedOptionDisplay">
+            <strong>You have picked：</strong><span id="selectedOptionText">Please pick one</span>
+        </div>
+    </div>
+    <!--questions for 2 -->
+    <div class="question">
+        <h3><i class="fas fa-2"></i> Landscape: pick the landscape your house is near, you can pick more than one:</h3>
+        <div id="question2">
+            <div class="checkbox-option" data-value="8">
+                <input type="checkbox" class="me-2"> A bow-shaped hill behind you
+            </div>
+            <div class="checkbox-option" data-value="-7">
+                <input type="checkbox" class="me-2"> Facing a cliff
+            </div>
+            <div class="checkbox-option" data-value="-5">
+                <input type="checkbox" class="me-2"> Located in a basin
+            </div>
+            <div class="checkbox-option" data-value="6">
+                <input type="checkbox" class="me-2"> Located on a gentle slope which facing towards the sun
+            </div>
+        </div>
+    </div>
+    <!--questions for 3-6 -->
+    <div class="question">
+        <h3><i class="fas fa-3"></i> Water: pick the landscape your house is near, you can pick more than one:</h3>
+        <div class="options-group">
+            <div class="checkbox-option" data-value="9">
+                <input type="checkbox" class="me-2" name="group3">Water/river around your house
+            </div>
+            <div class="checkbox-option" data-value="-8">
+                <input type="checkbox" class="me-2" name="group3">Water/river directly facing towards your house
+            </div>
+            <div class="checkbox-option" data-value="-6">
+                <input type="checkbox" class="me-2" name="group3">Static/silent pond
+            </div>
+            <div class="checkbox-option" data-value="4">
+                <input type="checkbox" class="me-2" name="group3">Fountain nearby which is active
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3><i class="fas fa-4"></i>Road condition: pick the landscape your house is near, you can pick more than one:
+        </h3>
+        <div class="options-group">
+            <div class="checkbox-option" data-value="-7">
+                <input type="checkbox" class="me-2" name="group4">Bow-shaped road, and your house is facing the bow
+            </div>
+            <div class="checkbox-option" data-value="-9">
+                <input type="checkbox" class="me-2" name="group4">T-junction, and your house is at the corner of the
+                crossing
+            </div>
+            <div class="checkbox-option" data-value="5">
+                <input type="checkbox" class="me-2" name="group4"> The road in front of your house has many
+                turns(snake-shaped)
+            </div>
+            <div class="checkbox-option" data-value="-4">
+                <input type="checkbox" class="me-2" name="group4"> Straight road facing your house
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3><i class="fas fa-5"></i>Special facilities: pick the landscape your house is near, you can pick more than
+            one:</h3>
+        <div class="options-group">
+            <div class="checkbox-option" data-value="-5">
+                <input type="checkbox" class="me-2" name="group5">High voltage power tower near by(500 meters)
+            </div>
+            <div class="checkbox-option" data-value="-8">
+                <input type="checkbox" class="me-2" name="group5">Garbage treatment plant near by(3000 meters)
+            </div>
+            <div class="checkbox-option" data-value="3">
+                <input type="checkbox" class="me-2" name="group5">Temple near by
+            </div>
+            <div class="checkbox-option" data-value="6">
+                <input type="checkbox" class="me-2" name="group5">School/library near by
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <h3><i class="fas fa-6"></i>Plants conditions: pick the landscape your house is near, you can pick more than
+            one:</h3>
+        <div class="options-group">
+            <div class="checkbox-option" data-value="7">
+                <input type="checkbox" class="me-2" name="group6">A tree with a long history
+            </div>
+            <div class="checkbox-option" data-value="-4">
+                <input type="checkbox" class="me-2" name="group6">Dead bush
+            </div>
+            <div class="checkbox-option" data-value="-3">
+                <input type="checkbox" class="me-2" name="group6">Plants with thorns
+            </div>
+            <div class="checkbox-option" data-value="5">
+                <input type="checkbox" class="me-2" name="group6">Bamboo forest behind your house
+            </div>
+        </div>
+    </div>
+
+    <!-- add before the calculate button -->
+    <div style="text-align: center; margin: 20px 0;">
+        <button class="clear-btn" id="clearBtn">
+            <i class="fas fa-trash-alt"></i> Clear out
+        </button>
+    </div>
+
+
+    <button class="calculate-btn" id="calculateBtn">
+        <i class="fas fa-calculator"></i> Calculate your score!
+    </button>
+
+    <div class="result" id="result">
+        <h3>Your Fengshui score</h3>
+        <div class="score" id="score">0</div>
+        <div class="fengshui-tips" id="fengshuiTips"></div>
+    </div>
+
+    <div class="footer">
+        <p>This is just an entertainment | Please don't take it serious</p>
+    </div>
+</div>
+
+<script>
+//Wait until the HTML structure of the page is loaded (different pictures/styles), and then execute the code inside
+document.addEventListener('DOMContentLoaded', () => {
+// Tool1:$ select single element (Document Object Model) that suits the requirement
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+// Tool2:$all select all elements (Document Object Model) that suits the requirements
+  const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+// Get drop-down box related Document Object Model (DOM)
+  const selectBox = $('#selectBox');
+  const selectOptions = $('#selectOptions');
+  const selectedOptionDisplay = $('#selectedOptionDisplay');
+  const selectedOptionText = $('#selectedOptionText');
+  let selectedOption1 = null; // Record the current options for Question 1
+
+  // Drop-down box
+  selectBox.addEventListener('click', e => {
+    e.stopPropagation(); // Prevent bubbling and avoid clicking on the "stow logic" of document
+    //Switch the display/hide of the option panel
+    selectOptions.style.display = (selectOptions.style.display === 'block') ? 'none' : 'block';
+    selectBox.classList.toggle('select-arrow-active'); // the arrow of the selecting bar, if selected then points up
+  });
+
+  // Every opinion in the drop-down box
+  selectOptions.addEventListener('click', e => {
+    if (e.target.classList.contains('select-item')) { // Only responds to the behavior of clicking on options
+    // Clear the "selected" styles of all options first
+      $all('.select-item').forEach(opt => opt.classList.remove('selected'));
+    // Current item plus "selected" style (past selected + current selected)
+      e.target.classList.add('selected');
+    // Display the selection results in the "box"
+      selectBox.textContent = e.target.textContent;
+    // Record the currently selected DOM element (its data value will be read later)
+      selectedOption1 = e.target;
+    // Update the text in "You have selected..."
+      selectedOptionText.textContent = e.target.textContent;
+    // Display the prompt block "You have selected..."
+      selectedOptionDisplay.style.display = 'block';
+    // Ture the drop-down arrow up-side-down after selecting&restore arrow style
+      selectOptions.style.display = 'none';
+      selectBox.classList.remove('select-arrow-active');
+    }
+  });
+
+  // Collapse the drop-down panel after clicking other places on the page
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.select-selected')) {
+      selectOptions.style.display = 'none';
+      selectBox.classList.remove('select-arrow-active');
+    }
+  });
+
+  // Multiple choices
+  document.addEventListener('click', e => {
+  // Find the nearest checkbox option container (it is allowed to respond even when clicking blank)
+    const option = e.target.closest('.checkbox-option');
+    if (option) {
+      const cb = option.querySelector('input[type="checkbox"]');
+      cb.checked = !cb.checked; // Manually switch the tick status, not automatically
+      option.classList.toggle('selected', cb.checked); // When checked, highlight the whole block
+    }
+  });
+
+  // Clear button
+  $('#clearBtn').addEventListener('click', () => {
+  // Turn the Drop-down box to original state
+    selectBox.textContent = 'please pick one...';
+    $all('.select-item').forEach(i => i.classList.remove('selected'));
+    selectedOption1 = null;
+    selectedOptionDisplay.style.display = 'none';
+    selectedOptionText.textContent = 'Please pick one';
+  // Multi option Cancel All
+    $all('.checkbox-option').forEach(opt => {
+      opt.classList.remove('selected');
+      opt.querySelector('input').checked = false;
+    });
+  // Hide the result card (if previously displayed)
+    $('#result').style.display = 'none';
+  // A sign will appear on the right upper corner
+    showNotification('all set！');
+  });
+
+// Codes below are for the CSS of sign called "all set!"
+  function showNotification(msg) {
+    $('#clearNotification')?.remove();
+    const div = document.createElement('div');
+    div.id = 'clearNotification';
+    div.style.cssText = `position:fixed;top:20px;right:20px;background:#4caf50;color:#fff;
+      padding:15px 20px;border-radius:5px;box-shadow:0 4px 10px rgba(0,0,0,.3);
+      z-index:10000;animation:fadeInOut 3s ease-in-out;`;
+    div.textContent = msg;
+    document.body.appendChild(div);
+  // Will disappear after 3 seconds
+    setTimeout(() => div.remove(), 3000);
+  }
+
+  // Inject a keyframes animation (for the sign "all set!")
+  const style = document.createElement('style');
+  style.textContent = `@keyframes fadeInOut{
+    0%{opacity:0;transform:translateY(-20px);}
+    10%,90%{opacity:1;transform:translateY(0);}
+    100%{opacity:0;transform:translateY(-20px);}
+  }`;
+  document.head.appendChild(style);
+
+  // Calculate the scores
+  // Used week 8 advanced topic##############################################################################################
+  $('#calculateBtn').addEventListener('click', () => {
+  // Record the first occurrence of "negative item" (for suggestions on the next page)
+    let score = 50, penaltySelected = ""; // The score of the beginning is 50
+  // Add the score of a certain item to the total score; If the score is negative and has not been recorded, record it
+    function applyValue(val, label) {
+      score += val;
+      if (val < 0 && !penaltySelected) penaltySelected = label.trim();
+    }
+
+  // Question 1: If the drop-down item is selected, take its data value
+    if (selectedOption1) {
+      applyValue(+selectedOption1.dataset.value, selectedOption1.textContent);
+    }
+  // Question 2~6: Add points to all "checked" check boxes
+    $all('.checkbox-option input:checked').forEach(cb => {
+      const div = cb.closest('.checkbox-option');
+      applyValue(+div.dataset.value, div.textContent.replace(/\s+/g, ' '));
+    });
+
+  // Determine the result page to jump to according to the score (multi-level ternary operation: matching interval from high to low)
+    let redirectUrl =
+      score >= 70 ? '/dachangji/' :
+      score >= 65 ? '/daji/' :
+      score >= 60 ? '/zhongji/' :
+      score >= 55 ? '/xiaoji/' :
+      score >= 30 ? '/ji/' :
+      '/zhong/';
+  // Join the URLs and take scores as query parameters
+    let url = `${redirectUrl}?score=${score}`;
+
+  // If the first penalty is recorded, it will also be carried over (the next page is used to display suggestions)
+    if (penaltySelected) {
+      url += '&selected=' + encodeURIComponent(penaltySelected);
+    }
+
+  // This is the real jump
+    window.location.href = url;
+  });
+});
+
+</script>
+</body>
+</html>

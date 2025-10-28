@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Fengshui – Penalty Items</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body {
+    background: url("{% static 'image/bgi.png' %}") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: 'Microsoft YaHei', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 0;
+}
+body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: -1;
+}
+        .wrap {
+            max-width: 900px;
+            width:100%;
+        }
+        .card {
+            background:#fff;
+            border-radius:16px;
+            box-shadow:0 10px 30px rgba(0,0,0,.1);
+            padding:28px;
+        }
+        h1 {
+            color:#8a2be2;
+            margin:0 0 10px;
+        }
+        .meta {
+            color:#555;
+            margin-bottom:18px;
+        }
+        ul {
+            margin:12px 0 0;
+            padding-left:20px;
+            line-height:1.8;
+            }
+        .warn {
+            background: #e6ffe6;
+            border:1px solid #66cc66;
+            padding:8px 12px;
+            border-radius:8px;
+            }
+        .btn {
+          display:inline-block;
+          margin-top:20px;
+          padding:12px 28px;
+          border-radius:999px;
+          border:none;
+          cursor:pointer;
+          background: linear-gradient(45deg, #4776E6, #8E54E9);
+          color:#fff;
+          font-weight:bold;
+          text-decoration:none;
+          box-shadow: 0 6px 18px rgba(0,0,0,.18);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow:0 10px 24px rgba(0,0,0,.22);
+        }
+        .empty {
+            color:#888;
+            font-style:italic;
+        }
+        .wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .side-img {
+            width: 400px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <img src="{% static 'image/give.jpg' %}" alt="give" class="side-img">
+    <div class="card">
+        <h1>Here are small suggestions:</h1>
+
+        <ul id="penaltyList">
+            <li class="empty">Analyzing...</li>
+        </ul>
+
+
+        <button class="btn" onclick="history.back()">Back</button>
+    </div>
+</div>
+
+<script>
+    // Small dictionary for the chosen ones and their advice
+    const PENALTY_MAP = {
+      "Southwest": "You need stability.",
+      "West": "Beware of gossip or haste.",
+      "Located in a basin": "Use bright lighting.",
+      "Facing a cliff": "Hang a Ba-Gua mirror facing the cliff",
+      "Dead bush": "Remove all dead plants, wood, or debris.",
+      "Plants with thorns": "Relocate thorny plants.",
+      "Straight road facing your house": "Create a barrier.",
+      "High voltage power tower near by(500 meters)": "Energetic Shielding.",
+      "Garbage treatment plant near by(3000 meters)": "Use bright, strong lights"
+    };
+
+    // Change the Key of the map to a given form
+    const norm = s => (s || "").toString().replace(/\s+/g, " ").trim().toLowerCase();
+
+    // Change the Value of the map to a given form
+    const PENALTY_MAP_NORM = Object.fromEntries(
+      Object.entries(PENALTY_MAP).map(([k, v]) => [norm(k), v])
+    );
+
+    // Get parameters from URL
+    function getSelectedFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      let sel = params.get("selected") || "";
+      return sel ? sel.split(",") : []; // turn the URL into a tuple, the tuple contains many elements
+    }
+
+    // Render List
+    function renderPenaltyList(selectedArr) {
+    // Get the tuple from the penalty map and put it to codes below
+      const ul = document.getElementById("penaltyList");
+    // Clear the old content first to ensure that each rendering is up to date
+      ul.innerHTML = "";
+
+    // Consume that there is no suggestion in the beginning, then return "all good"
+      let found = false;
+    // View the original selection array passed in
+      selectedArr.forEach(itemRaw => {
+    // Unify the current item, change all capital letters into normal ones
+        const key = norm(itemRaw);
+    // See which one is in the penalty map
+        const hit = PENALTY_MAP_NORM[key];
+    // If found one that is in the penalty map, then return the value (suggestion) of the penalty map
+        if (hit) {
+          const li = document.createElement("li");
+          li.innerHTML = `<span class="warn">${hit}</span>`;
+          ul.appendChild(li);
+          found = true;
+        }
+      });
+    // If none of the array passed in matches the key in the penalty map, return "You are all good!"
+      if (!found) {
+        ul.innerHTML = '<li class="empty">You are all good!</li>';
+      }
+    }
+
+    // main function, get the elements and return it to renderPenaltyList
+    (function main() {
+      const selectedArr = getSelectedFromURL(); // can be ["West","Dead bush","..."]
+      renderPenaltyList(selectedArr);
+    })();
+
+  // Used week 10 advanced topic##############################################################################################
+  function expectEqual(name, actual, expected) {
+    const ok = (actual === expected);
+    console.log(`[TEST] ${name}: ${ok ? 'PASS' : 'FAIL'} (actual=${actual}, expected=${expected})`);
+  }
+
+  // To check the original element
+  // And check whether it is existing in the PENALTY_MAP_NORM
+  // If it is existing, then return the suggestions, if not, then return null
+  function lookupAdvice(raw){
+    const key = (raw || '').toString().replace(/\s+/g,' ').trim().toLowerCase();
+    return (window.PENALTY_MAP_NORM && PENALTY_MAP_NORM[key]) || null;
+  }
+
+  // run the testing
+  document.addEventListener('DOMContentLoaded', function () {
+    // Example 1: whether capital letters or not, whether there is a space or not
+    expectEqual('map: southwest', !!lookupAdvice('  SouthWest  '), true);
+
+    // Example 2: Whether a key is existing
+    expectEqual('map: basin exists', !!lookupAdvice('Located in a basin'), true);
+
+    // Example 3: If the key is not existing
+    expectEqual('map: unknown', lookupAdvice('Not In Map'), null);
+  });
+</script>
+</body>
+</html>
