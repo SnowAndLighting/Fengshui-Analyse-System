@@ -112,14 +112,18 @@ body::before {
       "Plants with thorns": "Relocate thorny plants.",
       "Straight road facing your house": "Create a barrier.",
       "High voltage power tower near by(500 meters)": "Energetic Shielding.",
-      "Garbage treatment plant near by(3000 meters)": "Use bright, strong lights"
+      "Garbage treatment plant near by(3000 meters)": "Use bright, strong lights.",
+      "Water/river directly facing towards your house": "Soften direct flow.",
+      "Static/silent pond": "Introduce movement.",
+      "Bow-shaped road and your house is facing the bow": "Use hedges.",
+      "T-junction and your house is at the corner of the crossing": "Add buffering.",
     };
 
     // Change the Key of the map to a given form
     const norm = s => (s || "").toString().replace(/\s+/g, " ").trim().toLowerCase();
 
     // Change the Value of the map to a given form
-    const PENALTY_MAP_NORM = Object.fromEntries(
+    window.PENALTY_MAP_NORM = Object.fromEntries(
       Object.entries(PENALTY_MAP).map(([k, v]) => [norm(k), v])
     );
 
